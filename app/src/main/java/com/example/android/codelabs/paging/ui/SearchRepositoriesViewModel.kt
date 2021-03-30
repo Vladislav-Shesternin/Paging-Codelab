@@ -20,9 +20,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.insertSeparators
+import androidx.paging.map
 import com.example.android.codelabs.paging.data.GithubRepository
 import com.example.android.codelabs.paging.model.Repo
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class SearchRepositoriesViewModel(
         private val repository: GithubRepository
@@ -30,16 +33,40 @@ class SearchRepositoriesViewModel(
 
     private var currentQueryValue: String? = null
 
-    private var currentSearchResult: Flow<PagingData<Repo>>? = null
+    private var currentSearchResult: Flow<PagingData<UiModel>>? = null
 
-    fun searchRepo(queryString: String): Flow<PagingData<Repo>> {
+    private val UiModel.RepoItem.roundedStarCount: Int
+        get() = this.repo.stars / 10_000
+
+    fun searchRepo(queryString: String): Flow<PagingData<UiModel>> {
         val lastResult = currentSearchResult
         if (queryString == currentQueryValue && lastResult != null) {
             return lastResult
         }
         currentQueryValue = queryString
-        val newResult: Flow<PagingData<Repo>> = repository.getSearchResultStream(queryString)
-                .cachedIn(viewModelScope)
+        val newResult: Flow<PagingData<UiModel>> = repository.getSearchResultStream(queryString)
+                .map { pagingData -> pagingData.map { UiModel.RepoItem(it) } }
+                .map {
+                    it.insertSeparators<UiModel.RepoItem, UiModel> { before, after ->
+                        if (after == null) {
+                            return@insertSeparators null
+                        }
+
+                        if (before == null) {
+                            return@insertSeparators UiModel.SeparatorItem("${after.roundedStarCount}0.000+ stars")
+                        }
+
+                        if (before.roundedStarCount > after.roundedStarCount) {
+                            if (after.roundedStarCount >= 1) {
+                                UiModel.SeparatorItem("${after.roundedStarCount}0.000+ stars")
+                            } else {
+                                UiModel.SeparatorItem("< 10.000+ stars")
+                            }
+                        } else {
+                            null
+                        }
+                    }
+                }.cachedIn(viewModelScope)
         currentSearchResult = newResult
         return newResult
     }
