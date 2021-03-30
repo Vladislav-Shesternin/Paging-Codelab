@@ -70,8 +70,7 @@
         android:src="@drawable/ic_star"
         app:layout_constraintEnd_toStartOf="@+id/repo_stars"
         app:layout_constraintBottom_toBottomOf="@+id/repo_stars"
-        app:layout_constraintTop_toTopOf="@+id/repo_stars"
-    />
+        app:layout_constraintTop_toTopOf="@+id/repo_stars"/>
 
     <TextView
         android:id="@+id/repo_stars"
@@ -91,8 +90,7 @@
         android:src="@drawable/ic_git_branch"
         app:layout_constraintEnd_toStartOf="@+id/repo_forks"
         app:layout_constraintBottom_toBottomOf="@+id/repo_forks"
-        app:layout_constraintTop_toTopOf="@+id/repo_forks"
-    />
+        app:layout_constraintTop_toTopOf="@+id/repo_forks" />
 
     <TextView
         android:id="@+id/repo_forks"
